@@ -129,15 +129,21 @@ class ProductController extends Controller
                 'comment' => 'nullable|string',
             ]);
 
-            $product->update([
-                'company_id' => $request->company_id,
-                'product_name' => $request->product_name,
-                'price' => $request->price,
-                'stock' => $request->stock,
-                'comment' => $request->comment,
-                'img_path' => $request->img_path,
-            ]);
+                        // $product->update([
+            //     'company_id' => $request->company_id,
+            //     'product_name' => $request->product_name,
+            //     'price' => $request->price,
+            //     'stock' => $request->stock,
+            //     'comment' => $request->comment,
+            //     'img_path' => $request->img_path,
+            // ]);
 
+            // 下記を追加しました
+            $changes = $request->only(['company_id', 'product_name', 'price', 'stock', 'comment', 'img_path']);
+
+            $product->update($changes);
+            // ここまで
+            
             DB::commit();
             return redirect()->route('index')->with('message', '更新が完了しました');
         } catch (\Exception $e) {
