@@ -145,7 +145,7 @@ class ProductController extends Controller
             // ここまで
             
             DB::commit();
-            return redirect()->route('index')->with('message', '更新が完了しました');
+            return redirect()->route('index', $id)->with('message', '更新が完了しました');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error($e);
