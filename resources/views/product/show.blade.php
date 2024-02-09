@@ -10,7 +10,7 @@
         <label for="id" class="form-label col-8 margin-auto">ID:</label>
         <p class="border 2px auto col-4">{{ $product->id }}</p>
     </div>
-    
+
     <div class="mb-3">
         <label for="img_path" class="form-label col-8 margin-auto">商品画像:</label>
         <img src="{{ $product->img_path }}" alt="" class="border 2px auto col-4">
@@ -52,4 +52,5 @@
         <a href="{{ route('edit', $product->id) }}" class="btn btn-primary">更新画面へ</a>
     </div>
 </div>
+
 @endsection
