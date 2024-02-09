@@ -129,7 +129,7 @@ class ProductController extends Controller
                 'comment' => 'nullable|string',
             ]);
 
-                        // $product->update([
+            // $product->update([
             //     'company_id' => $request->company_id,
             //     'product_name' => $request->product_name,
             //     'price' => $request->price,
@@ -153,6 +153,8 @@ class ProductController extends Controller
             return response()->view('index', compact('message'), 500);
         }
     }
+
+
     /**
      * Remove the specified resource from storage.
      *
