@@ -47,7 +47,7 @@
                 @foreach($products as $product)
                 <tr>
                     <td>{{ $product->id }}</td>
-                    <td><img src="{{ asset($product->img_path) }}" alt="商品画像"></td>
+                    <td><img src="{{ asset($product->img_path) }}" alt="商品画像" width="200" height="200"></td>
                     <td>{{ $product->product_name }}</td>
                     <td>{{ $product->price }}</td>
                     <td>{{ $product->stock }}</td>
