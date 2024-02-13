@@ -18,7 +18,7 @@
 
     <a href="{{ route('index') }}" class="btn btn-primary mb-3">商品一覧に戻る</a>
 
-    <form method="POST" action="{{ route('store') }}">
+    <form method="POST" action="{{ route('store') }}" enctype="multipart/form-data">
         @csrf
         <div class="mb-3">
             <label for="img_path" class="form-label">商品画像:</label>
