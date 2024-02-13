@@ -65,13 +65,20 @@ class ProductController extends Controller
         try {
             DB::beginTransaction();
 
+            // 下記を追加しました
+            $imgPath = null;
+            if ($request->hasFile('img_path')) {
+                $imgPath = $request->file('img_path')->store('products', 'public');
+            }
+            // ここまで
+
             Product::create([
                 'company_id' => $request->company_id,
                 'product_name' => $request->product_name,
                 'price' => $request->price,
                 'stock' => $request->stock,
                 'comment' => $request->comment,
-                'img_path' => $request->img_path,
+                'img_path' => $request->file('img_path')->store('images'),
             ]);
 
             DB::commit();
@@ -129,6 +136,13 @@ class ProductController extends Controller
                 'comment' => 'nullable|string',
             ]);
 
+            // 下記を追加しました
+            if ($request->hasFile('img_path')) {
+                $imgPath = $request->file('img_path')->store('products', 'public');
+                $product->img_path = $imgPath;
+            }
+            // ここまで
+
             // $product->update([
             //     'company_id' => $request->company_id,
             //     'product_name' => $request->product_name,
@@ -143,7 +157,7 @@ class ProductController extends Controller
 
             $product->update($changes);
             // ここまで
-            
+
             DB::commit();
             return redirect()->route('index', $id)->with('message', '更新が完了しました');
         } catch (\Exception $e) {
