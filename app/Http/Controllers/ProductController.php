@@ -8,8 +8,6 @@ use App\Models\Company;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-
-
 class ProductController extends Controller
 {
     /**
@@ -19,10 +17,10 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $products = Product::with('company')->paginate(5);
+        $products = Product::with('company')->paginate(4);
 
         $productName = $request->input('product_name');
-        $companyName = $request->input('company_id'); // Ensure this matches the name in the form
+        $companyName = $request->input('company_id');
 
         if ($productName || $companyName) {
             $query = Product::query();
@@ -37,11 +35,12 @@ class ProductController extends Controller
                 });
             }
 
-            $products = $query->paginate(5);
+            $products = $query->paginate(4);
         }
 
         return view('product.index', compact('products'));
     }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -50,7 +49,6 @@ class ProductController extends Controller
     public function create()
     {
         $companies = Company::all();
-        // dd($companies);
         return view('product.create', compact('companies'));
     }
 
@@ -65,20 +63,21 @@ class ProductController extends Controller
         try {
             DB::beginTransaction();
 
-            // 下記を追加しました
-            $imgPath = null;
-            if ($request->hasFile('img_path')) {
-                $imgPath = $request->file('img_path')->store('products', 'public');
+            $image = $request->file('img_path');
+            if ($image) {
+                $file_name = $image->getClientOriginalName();
+                $image->storeAs('public/images', $file_name);
+                $image_path = 'storage/images/' . $file_name;
+            } else {
+                $image_path = null;
             }
-            // ここまで
-
             Product::create([
                 'company_id' => $request->company_id,
                 'product_name' => $request->product_name,
                 'price' => $request->price,
                 'stock' => $request->stock,
                 'comment' => $request->comment,
-                'img_path' => $request->file('img_path')->store('images'),
+                'img_path' => $image_path,
             ]);
 
             DB::commit();
@@ -86,10 +85,10 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             Log::error($e);
-            $message = "エラーが発生しました: " . $e->getMessage();
-            return view('index', compact('message'));
+            return redirect()->route('index')->with('message', '失敗しました');
         }
     }
+
     /**
      * Display the specified resource.
      *
@@ -101,6 +100,7 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
         return view('product.show', compact('product'));
     }
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -113,6 +113,7 @@ class ProductController extends Controller
         $companies = Company::all();
         return view('product.edit', compact('product', 'companies'));
     }
+
     /**
      * Update the specified resource in storage.
      *
@@ -136,39 +137,27 @@ class ProductController extends Controller
                 'comment' => 'nullable|string',
             ]);
 
-            // 下記を追加しました
-            if ($request->hasFile('img_path')) {
-                $imgPath = $request->file('img_path')->store('products', 'public');
-                $product->img_path = $imgPath;
+            $image = $request->file('img_path');
+            if ($image) {
+                $file_name = $image->getClientOriginalName();
+                $image->storeAs('public/images', $file_name);
+                $image_path = 'storage/images/' . $file_name;
+            } else {
+                $image_path = $product->img_path;
             }
-            // ここまで
-
-            // $product->update([
-            //     'company_id' => $request->company_id,
-            //     'product_name' => $request->product_name,
-            //     'price' => $request->price,
-            //     'stock' => $request->stock,
-            //     'comment' => $request->comment,
-            //     'img_path' => $request->img_path,
-            // ]);
-
-            // 下記を追加しました
-            $changes = $request->only(['company_id', 'product_name', 'price', 'stock', 'comment', 'img_path']);
+            $changes = $request->only(['company_id', 'product_name', 'price', 'stock', 'comment']);
+            $changes['img_path'] = $image_path;
 
             $product->update($changes);
-            // ここまで
 
             DB::commit();
-            return redirect()->route('index', $id)->with('message', '更新が完了しました');
+            return redirect()->route('index')->with('message', '更新が完了しました');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error($e);
-            $message = "エラーが発生しました: " . $e->getMessage();
-            return response()->view('index', compact('message'), 500);
+            return redirect()->route('index')->with('message', '失敗しました');
         }
     }
-
-
     /**
      * Remove the specified resource from storage.
      *
@@ -178,7 +167,6 @@ class ProductController extends Controller
     public function destroy($id)
     {
         Product::destroy($id);
-        return redirect()->route('products.index')
-            ->with('success', 'Product deleted successfully');
+        return redirect()->route('index')->with('success', '削除しました');
     }
 }
