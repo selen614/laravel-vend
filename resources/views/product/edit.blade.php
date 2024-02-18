@@ -18,7 +18,7 @@
 
     <a href="{{ route('index') }}" class="btn btn-primary mb-3">商品一覧に戻る</a>
 
-    <form method="POST" action="{{ route('update', $product->id) }}">
+    <form method="POST" action="{{ route('update', $product->id) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <div class="mb-3">
@@ -27,8 +27,12 @@
         </div>
 
         <div class="mb-3">
-            <label for="img_path" class="form-label">商品画像:</label>
-            <input id="img_path" type="file" name="img_path" class="form-control" value="{{ $product->img_path }}">
+            <label for="current_img_path" class="form-label">現在の商品画像:</label>
+            <img src="{{ asset($product->img_path) }}" alt="現在の商品画像" style="max-width: 200px;">
+        </div>
+        <div>
+            <label for="img_path" class="form-label">新しい商品画像:</label>
+            <input id="img_path" type="file" name="img_path" class="form-control" value="{{ asset($product->img_path) }}">
         </div>
 
         <div class="mb-3">
