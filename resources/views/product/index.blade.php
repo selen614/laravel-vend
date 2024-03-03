@@ -71,9 +71,15 @@
             </thead>
             <tbody>
                 @foreach($products as $product)
+<<<<<<< HEAD
                 <tr id="product_{{ $product->id }}">
                     <td>{{ $product->id }}</td>
                     <td><img src="{{ asset($product->img_path) }}" alt="" style="height:80px;"></td>
+=======
+                <tr>
+                    <td>{{ $product->id }}</td> 
+                    <td><img src="{{ asset($product->img_path) }}" alt="" style="height:100px;"></td>
+>>>>>>> 32f282825bd5fa435ba4fc3d1ee9fa50ecb0d938
                     <td>{{ $product->product_name }}</td>
                     <td>{{ $product->price }}</td>
                     <td>{{ $product->stock }}</td>
