@@ -10,22 +10,17 @@
         <label for="id" class="form-label col-8 margin-auto">ID:</label>
         <p class="border 2px auto col-4">{{ $product->id }}</p>
     </div>
-    
+
     <div class="mb-3">
         <label for="img_path" class="form-label col-8 margin-auto">商品画像:</label>
-        <img src="{{ $product->img_path }}" alt="" class="border 2px auto col-4">
+        <img src="{{ asset($product->img_path) }}" alt="" class="border 2px auto col-4">
         <div>
             @if($product->img_path)
-            <img src="{{ $product->img_path }}" alt="商品画像">
+            <img src="{{ $product->img_path }}" alt="">
             @else
             画像なし
             @endif
         </div>
-    </div>
-
-    <div class="mb-3">
-        <label for="product_name" class="form-label col-8 margin-auto">商品名:</label>
-        <p class="border 2px auto col-4">{{ $product->product_name }}</p>
     </div>
 
     <div class="mb-3">
@@ -52,4 +47,5 @@
         <a href="{{ route('edit', $product->id) }}" class="btn btn-primary">更新画面へ</a>
     </div>
 </div>
+
 @endsection

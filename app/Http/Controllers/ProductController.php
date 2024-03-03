@@ -7,8 +7,7 @@ use App\Models\Product;
 use App\Models\Company;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
-
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -19,29 +18,48 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $products = Product::with('company')->paginate(5);
-
         $productName = $request->input('product_name');
-        $companyName = $request->input('company_id'); // Ensure this matches the name in the form
+        $companyId = $request->input('company_id');
+        $minPrice = $request->input('min_price');
+        $maxPrice = $request->input('max_price');
+        $minStock = $request->input('min_stock');
+        $maxStock = $request->input('max_stock');
 
-        if ($productName || $companyName) {
-            $query = Product::query();
+        $query = Product::with('company');
 
-            if ($productName) {
-                $query->where('product_name', 'LIKE', '%' . $productName . '%');
-            }
-
-            if ($companyName) {
-                $query->whereHas('company', function ($query) use ($companyName) {
-                    $query->where('company_id', $companyName);
-                });
-            }
-
-            $products = $query->paginate(5);
+        if ($productName) {
+            $query->where('product_name', 'LIKE', '%' . $productName . '%');
         }
+
+        if ($companyId) {
+            $query->whereHas('company', function ($query) use ($companyId) {
+                $query->where('company_id', $companyId);
+            });
+        }
+
+        if ($minPrice && $maxPrice) {
+            $query->whereBetween('price', [$minPrice, $maxPrice]);
+        } elseif ($minPrice) {
+            $query->where('price', '>=', $minPrice);
+        } elseif ($maxPrice) {
+            $query->where('price', '<=', $maxPrice);
+        }
+
+        if ($minStock && $maxStock) {
+            $query->whereBetween('stock', [$minStock, $maxStock]);
+        } elseif ($minStock) {
+            $query->where('stock', '>=', $minStock);
+        } elseif ($maxStock) {
+            $query->where('stock', '<=', $maxStock);
+        }
+
+        $query->orderBy('id', 'desc');
+
+        $products = $query->paginate(4);
 
         return view('product.index', compact('products'));
     }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -50,7 +68,6 @@ class ProductController extends Controller
     public function create()
     {
         $companies = Company::all();
-        // dd($companies);
         return view('product.create', compact('companies'));
     }
 
@@ -63,24 +80,34 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         try {
-            DB::beginTransaction();
-
-            Product::create([
-                'company_id' => $request->company_id,
-                'product_name' => $request->product_name,
-                'price' => $request->price,
-                'stock' => $request->stock,
-                'comment' => $request->comment,
-                'img_path' => $request->img_path,
+            $validatedData = $request->validate([
+                'company_id' => 'required|exists:companies,id',
+                'product_name' => 'required|string',
+                'price' => 'required|numeric',
+                'stock' => 'required|integer',
+                'comment' => 'nullable|string',
+                'img_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
-            DB::commit();
-            return redirect()->route('index')->with('message', '登録が完了しました');
+            $imagePath = null;
+            if ($request->hasFile('img_path')) {
+                $imagePath = $request->file('img_path')->store('public/images');
+                $imagePath = Storage::url($imagePath);
+            }
+
+            $product = Product::create([
+                'company_id' => $validatedData['company_id'],
+                'product_name' => $validatedData['product_name'],
+                'price' => $validatedData['price'],
+                'stock' => $validatedData['stock'],
+                'comment' => $validatedData['comment'],
+                'img_path' => $imagePath,
+            ]);
+
+            return response()->json($product, 201);
         } catch (\Exception $e) {
-            DB::rollback();
             Log::error($e);
-            $message = "エラーが発生しました: " . $e->getMessage();
-            return view('index', compact('message'));
+            return response()->json(['message' => '失敗しました'], 500);
         }
     }
     /**
@@ -94,6 +121,7 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
         return view('product.show', compact('product'));
     }
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -106,6 +134,7 @@ class ProductController extends Controller
         $companies = Company::all();
         return view('product.edit', compact('product', 'companies'));
     }
+
     /**
      * Update the specified resource in storage.
      *
@@ -116,35 +145,34 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            DB::beginTransaction();
-
-            $product = Product::findOrFail($id);
-
-            $request->validate([
-                'img_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            $validatedData = $request->validate([
+                'company_id' => 'required|exists:companies,id',
                 'product_name' => 'required|string',
                 'price' => 'required|numeric',
                 'stock' => 'required|integer',
-                'company_id' => 'required|exists:companies,id',
                 'comment' => 'nullable|string',
+                'img_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
-            $product->update([
-                'company_id' => $request->company_id,
-                'product_name' => $request->product_name,
-                'price' => $request->price,
-                'stock' => $request->stock,
-                'comment' => $request->comment,
-                'img_path' => $request->img_path,
-            ]);
+            $imagePath = null;
+            if ($request->hasFile('img_path')) {
+                $imagePath = $request->file('img_path')->store('public/images');
+                $imagePath = Storage::url($imagePath);
+            }
 
-            DB::commit();
-            return redirect()->route('index')->with('message', '更新が完了しました');
+            $product = Product::findOrFail($id);
+            $product->company_id = $validatedData['company_id'];
+            $product->product_name = $validatedData['product_name'];
+            $product->price = $validatedData['price'];
+            $product->stock = $validatedData['stock'];
+            $product->comment = $validatedData['comment'];
+            $product->img_path = $imagePath;
+            $product->save();
+
+            return response()->json($product, 200);
         } catch (\Exception $e) {
-            DB::rollback();
             Log::error($e);
-            $message = "エラーが発生しました: " . $e->getMessage();
-            return response()->view('index', compact('message'), 500);
+            return response()->json(['message' => '失敗しました'], 500);
         }
     }
     /**
@@ -156,7 +184,6 @@ class ProductController extends Controller
     public function destroy($id)
     {
         Product::destroy($id);
-        return redirect()->route('products.index')
-            ->with('success', 'Product deleted successfully');
+        return redirect()->route('index')->with('success', '削除しました');
     }
 }
