@@ -7,10 +7,7 @@ use App\Models\Product;
 use App\Models\Company;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-<<<<<<< HEAD
 use Illuminate\Support\Facades\Storage;
-=======
->>>>>>> 32f282825bd5fa435ba4fc3d1ee9fa50ecb0d938
 
 class ProductController extends Controller
 {
@@ -21,38 +18,17 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-<<<<<<< HEAD
         $productName = $request->input('product_name');
         $companyId = $request->input('company_id');
         $minPrice = $request->input('min_price');
         $maxPrice = $request->input('max_price');
         $minStock = $request->input('min_stock');
         $maxStock = $request->input('max_stock');
-=======
-        $products = Product::with('company')->paginate(4);
-
-        $productName = $request->input('product_name');
-        $companyName = $request->input('company_id');
->>>>>>> 32f282825bd5fa435ba4fc3d1ee9fa50ecb0d938
 
         $query = Product::with('company');
 
-<<<<<<< HEAD
         if ($productName) {
             $query->where('product_name', 'LIKE', '%' . $productName . '%');
-=======
-            if ($productName) {
-                $query->where('product_name', 'LIKE', '%' . $productName . '%');
-            }
-
-            if ($companyName) {
-                $query->whereHas('company', function ($query) use ($companyName) {
-                    $query->where('company_id', $companyName);
-                });
-            }
-
-            $products = $query->paginate(4);
->>>>>>> 32f282825bd5fa435ba4fc3d1ee9fa50ecb0d938
         }
 
         if ($companyId) {
@@ -104,7 +80,6 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         try {
-<<<<<<< HEAD
             $validatedData = $request->validate([
                 'company_id' => 'required|exists:companies,id',
                 'product_name' => 'required|string',
@@ -112,25 +87,6 @@ class ProductController extends Controller
                 'stock' => 'required|integer',
                 'comment' => 'nullable|string',
                 'img_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-=======
-            DB::beginTransaction();
-
-            $image = $request->file('img_path');
-            if ($image) {
-                $file_name = $image->getClientOriginalName();
-                $image->storeAs('public/images', $file_name);
-                $image_path = 'storage/images/' . $file_name;
-            } else {
-                $image_path = null;
-            }
-            Product::create([
-                'company_id' => $request->company_id,
-                'product_name' => $request->product_name,
-                'price' => $request->price,
-                'stock' => $request->stock,
-                'comment' => $request->comment,
-                'img_path' => $image_path,
->>>>>>> 32f282825bd5fa435ba4fc3d1ee9fa50ecb0d938
             ]);
 
             $imagePath = null;
@@ -151,11 +107,7 @@ class ProductController extends Controller
             return response()->json($product, 201);
         } catch (\Exception $e) {
             Log::error($e);
-<<<<<<< HEAD
             return response()->json(['message' => '失敗しました'], 500);
-=======
-            return redirect()->route('index')->with('message', '失敗しました');
->>>>>>> 32f282825bd5fa435ba4fc3d1ee9fa50ecb0d938
         }
     }
 
@@ -203,26 +155,11 @@ class ProductController extends Controller
                 'img_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
-<<<<<<< HEAD
             $imagePath = null;
             if ($request->hasFile('img_path')) {
                 $imagePath = $request->file('img_path')->store('public/images');
                 $imagePath = Storage::url($imagePath);
             }
-=======
-            $image = $request->file('img_path');
-            if ($image) {
-                $file_name = $image->getClientOriginalName();
-                $image->storeAs('public/images', $file_name);
-                $image_path = 'storage/images/' . $file_name;
-            } else {
-                $image_path = $product->img_path;
-            }
-            $changes = $request->only(['company_id', 'product_name', 'price', 'stock', 'comment']);
-            $changes['img_path'] = $image_path;
-
-            $product->update($changes);
->>>>>>> 32f282825bd5fa435ba4fc3d1ee9fa50ecb0d938
 
             $product = Product::findOrFail($id);
             $product->company_id = $validatedData['company_id'];
@@ -236,11 +173,7 @@ class ProductController extends Controller
             return response()->json($product, 200);
         } catch (\Exception $e) {
             Log::error($e);
-<<<<<<< HEAD
             return response()->json(['message' => '失敗しました'], 500);
-=======
-            return redirect()->route('index')->with('message', '失敗しました');
->>>>>>> 32f282825bd5fa435ba4fc3d1ee9fa50ecb0d938
         }
     }
     /**
