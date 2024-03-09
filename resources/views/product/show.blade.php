@@ -13,10 +13,9 @@
 
     <div class="mb-3">
         <label for="img_path" class="form-label col-8 margin-auto">商品画像:</label>
-        <img src="{{ asset($product->img_path) }}" alt="" class="border 2px auto col-4">
         <div>
             @if($product->img_path)
-            <img src="{{ $product->img_path }}" alt="">
+            <img src="{{ $product->img_path }}" alt="" style="height: 100px">
             @else
             画像なし
             @endif
