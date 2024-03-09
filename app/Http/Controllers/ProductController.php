@@ -104,10 +104,10 @@ class ProductController extends Controller
                 'img_path' => $imagePath,
             ]);
 
-            return response()->json($product, 201);
+            return redirect()->route('index')->with('success', '作成しました');
         } catch (\Exception $e) {
             Log::error($e);
-            return response()->json(['message' => '失敗しました'], 500);
+            return response()->route(['message' => '失敗しました'], 500);
         }
     }
 
@@ -170,10 +170,10 @@ class ProductController extends Controller
             $product->img_path = $imagePath;
             $product->save();
 
-            return response()->json($product, 200);
+            return redirect()->route('index')->with('success', '更新しました');
         } catch (\Exception $e) {
             Log::error($e);
-            return response()->json(['message' => '失敗しました'], 500);
+            return response()->route(['message' => '失敗しました'], 500);
         }
     }
     /**
@@ -185,6 +185,6 @@ class ProductController extends Controller
     public function destroy($id)
     {
         Product::destroy($id);
-        return redirect()->route('index')->with('success', '削除しました');
+        return response()->json(['message' => '削除しました'], 200);
     }
 }
