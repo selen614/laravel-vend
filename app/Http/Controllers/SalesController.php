@@ -36,6 +36,9 @@ class SaleController extends Controller
             DB::commit();
 
             return response()->json(['message' => '購入が完了しました'], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollback();
+            return response()->json(['message' => '商品が見つかりませんでした'], 404);
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json(['message' => $e->getMessage()], 400);
