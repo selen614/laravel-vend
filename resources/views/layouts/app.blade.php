@@ -16,59 +16,64 @@
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"></script>
-
-
     <script>
-        // <!-- 検索機能の非同期処理 -->
         $(document).ready(function() {
-            $("#searchButton").click(function() {
+            $("#searchButton").click(function(event) {
+                event.preventDefault();
+                searchProducts();
+            });
+
+            function searchProducts() {
                 var productName = $("#product_name").val();
                 var companyId = $("#company_id").val();
+                var minPrice = $("#min_price").val();
+                var maxPrice = $("#max_price").val();
+                var maxStock = $("#max_stock").val();
+                var minStock = $("#min_stock").val();
 
                 $.ajax({
                     url: "{{ route('index') }}",
                     method: "GET",
                     data: {
                         product_name: productName,
-                        company_id: companyId
+                        company_id: companyId,
+                        min_price: minPrice,
+                        max_price: maxPrice,
+                        min_stock: minStock,
+                        max_stock: maxStock
                     },
                     success: function(response) {
-                        $("#productsContainer").html(response);
+                        var $response = $(response).find('#productsContainer').html();
+                        $("#productsContainer").html($response);
                     }
                 });
-            });
+            }
         });
-
         // sort
-        $(document).ready(function() {
-            $("#sort").tablesorter();
-        });
-
+        $("#sort").tablesorter();
 
         // 削除
         $(document).ready(function() {
-            $(".delete-product").click(function() {
-                var productId = $(this).data('product_id');
+            $('.delete-product').on('click', function(event) {
+                event.preventDefault();
+                var productId = $(this).data('product-id');
+                var rowToRemove = $(this).closest('tr');
+
                 $.ajax({
-                    url: "{{ route('destroy', '') }}" + "/" + productId,
+                    url: '/destroy/' + productId,
                     type: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    success: function(result) {
-                        $("#product_" + productId).hide();
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(xhr.responseText);
+                    success: function(response) {
+                        rowToRemove.remove();
                     }
                 });
             });
         });
     </script>
-
 </head>
 
 <body>
@@ -122,7 +127,6 @@
                 </div>
             </div>
         </nav>
-
         <main class="py-4">
             @yield('content')
         </main>
