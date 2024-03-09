@@ -49,7 +49,7 @@
                 </div>
             </div>
             <div class="col-md-4" style="margin: 1rem 0 0 0;">
-                <button type="submit" class="btn btn-primary">検索</button>
+                <button id="searchButton" class="btn btn-primary">検索</button>
             </div>
         </form>
     </div>
