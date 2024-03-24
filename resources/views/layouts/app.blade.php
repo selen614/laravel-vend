@@ -20,6 +20,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"></script>
     <script>
         $(document).ready(function() {
+            function bindDeleteProductEvent() {
+                $('.delete-product').on('click', function(event) {
+                    event.preventDefault();
+                    var productId = $(this).data('product-id');
+                    var rowToRemove = $(this).closest('tr');
+
+                    $.ajax({
+                        url: '{{ route("destroy", "") }}/' + productId,
+                        type: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            rowToRemove.remove();
+                        }
+                    });
+                });
+            }
+
+            function bindTableSorter() {
+                $("#sort").tablesorter();
+            }
+
+            bindDeleteProductEvent();
+            bindTableSorter();
+
             $("#searchButton").click(function(event) {
                 event.preventDefault();
                 searchProducts();
@@ -47,31 +73,12 @@
                     success: function(response) {
                         var $response = $(response).find('#productsContainer').html();
                         $("#productsContainer").html($response);
+
+                        bindDeleteProductEvent();
+                        bindTableSorter();
                     }
                 });
             }
-        });
-        // sort
-        $("#sort").tablesorter();
-
-        // 削除
-        $(document).ready(function() {
-            $('.delete-product').on('click', function(event) {
-                event.preventDefault();
-                var productId = $(this).data('product-id');
-                var rowToRemove = $(this).closest('tr');
-
-                $.ajax({
-                    url: '/destroy/' + productId,
-                    type: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        rowToRemove.remove();
-                    }
-                });
-            });
         });
     </script>
 </head>
